@@ -119,7 +119,7 @@ def configure(spec_path, host, port, user, password, dbname, prompt, attributes,
     db_connection = common.get_db_connection(host, port, dbname, user, password)
     cursor = db_connection.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-    spec = load_spec(spec_path, cursor, verbose, attributes, memberships, ownerships, privileges)
+    spec = load_spec(spec_path, cursor, verbose, attributes, memberships, ownerships, privileges, attributes_source_table)
 
     sql_to_run = []
     password_changed = False  # Initialize this in case the attributes module isn't run
