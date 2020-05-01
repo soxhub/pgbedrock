@@ -62,6 +62,7 @@ def run_password_sql(cursor, all_password_sql_to_run):
     try:
         cursor.execute(query)
     except Exception as e:
+        logger.error('Password SQL Failure')
         common.fail(msg=common.FAILED_QUERY_MSG.format(query, e))
 
 
