@@ -39,6 +39,8 @@ EXCEPTED_SCHEMAS_MSG = ('Spec error: Schema found with except privilege for role
 VALIDATION_ERR_MSG = 'Spec error: Role "{}", field "{}": {}'
 
 SPEC_SCHEMA_YAML = """
+    ignore:
+        type: boolean
     can_login:
         type: boolean
     has_personal_schema:

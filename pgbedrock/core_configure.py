@@ -126,6 +126,14 @@ def configure(spec_path, host, port, user, password, dbname, prompt, attributes,
     sql_to_run = []
     password_changed = False  # Initialize this in case the attributes module isn't run
 
+    ignore_roles = []
+    for rolename, spec_config in spec.items():
+        spec_config = spec_config or {}
+        if spec_config.get('ignore', False):
+            ignore_roles.append(rolename)
+    for rolename in ignore_roles:
+        del spec[rolename]
+
     if attributes:
         sql_to_run.append(create_divider('attributes'))
         # Password changes happen within the attributes.py module itself so we don't leak
