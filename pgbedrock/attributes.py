@@ -54,7 +54,7 @@ PG_COLUMN_NAME = {
 COLUMN_NAME_TO_KEYWORD = {v: k for k, v in PG_COLUMN_NAME.items()}
 
 
-def analyze_attributes(spec, cursor, verbose, attributes_source_table):
+def analyze_attributes(spec, cursor, verbose, attributes_source_table, skip_passwords):
     logger.debug('Starting analyze_attributes()')
     dbcontext = DatabaseContext(cursor, verbose, attributes_source_table)
 
@@ -75,7 +75,7 @@ def analyze_attributes(spec, cursor, verbose, attributes_source_table):
                 is_desired = spec_config.get(keyword, False)
                 spec_attributes.append(attribute if is_desired else 'NO' + attribute)
 
-            roleconf = AttributeAnalyzer(rolename, spec_attributes, dbcontext)
+            roleconf = AttributeAnalyzer(rolename, spec_attributes, dbcontext, skip_passwords)
             roleconf.analyze()
             all_sql_to_run += roleconf.sql_to_run
             password_all_sql_to_run += roleconf.password_sql_to_run
@@ -102,13 +102,14 @@ class AttributeAnalyzer(object):
     make it match the provided spec attributes. Note that spec_attributes is a list whereas
     current_attributes is a dict. """
 
-    def __init__(self, rolename, spec_attributes, dbcontext):
+    def __init__(self, rolename, spec_attributes, dbcontext, skip_passwords):
         self.sql_to_run = []
         self.rolename = common.check_name(rolename)
         logger.debug('self.rolename set to {}'.format(self.rolename))
         self.spec_attributes = spec_attributes
 
         self.current_attributes = dbcontext.get_role_attributes(rolename)
+        self.skip_passwords = skip_passwords
 
         # We keep track of password-related SQL separately as we don't want running this to
         # go into the main SQL stream since that could leak password
@@ -210,7 +211,7 @@ class AttributeAnalyzer(object):
         """ Verify that the role's attributes match the spec's, updating as necessary """
         for attribute, desired_value in attributes.items():
             current_value = self.get_attribute_value(attribute)
-            if attribute == 'rolpassword' and not self.is_same_password(desired_value):
+            if attribute == 'rolpassword' and not self.skip_passwords and not self.is_same_password(desired_value):
                 logger.debug('Altering password for role "{}"'.format(self.rolename))
                 self.set_password(desired_value)
 
