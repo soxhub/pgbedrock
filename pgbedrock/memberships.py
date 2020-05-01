@@ -14,9 +14,9 @@ Q_GRANT_MEMBERSHIP = 'GRANT "{}" TO "{}";'
 Q_REVOKE_MEMBERSHIP = 'REVOKE "{}" FROM "{}";'
 
 
-def analyze_memberships(spec, cursor, verbose):
+def analyze_memberships(spec, cursor, verbose, attributes_source_table):
     logger.debug('Starting analyze_memberships()')
-    dbcontext = DatabaseContext(cursor, verbose)
+    dbcontext = DatabaseContext(cursor, verbose, attributes_source_table)
 
     # We disable the progress bar when showing verbose output (using '' as our bar_template)
     # or # the bar will get lost in the # output
