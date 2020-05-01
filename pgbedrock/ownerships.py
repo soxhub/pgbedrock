@@ -13,9 +13,9 @@ Q_SET_SCHEMA_OWNER = 'ALTER SCHEMA "{}" OWNER TO "{}"; -- Previous owner: "{}"'
 Q_SET_OBJECT_OWNER = 'ALTER {} {} OWNER TO "{}"; -- Previous owner: "{}"'
 
 
-def analyze_ownerships(spec, cursor, verbose):
+def analyze_ownerships(spec, cursor, verbose, attributes_source_table):
     logger.debug('Starting analyze_ownerships()')
-    dbcontext = DatabaseContext(cursor, verbose)
+    dbcontext = DatabaseContext(cursor, verbose, attributes_source_table)
 
     # We disable the progress bar when showing verbose output (using '' as our bar_template)
     # or # the bar will get lost in the # output

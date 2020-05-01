@@ -30,9 +30,9 @@ Q_REVOKE_DEFAULT = """
     """
 
 
-def analyze_privileges(spec, cursor, verbose):
+def analyze_privileges(spec, cursor, verbose, attributes_source_table):
     logger.debug('Starting analyze_privileges()')
-    dbcontext = DatabaseContext(cursor, verbose)
+    dbcontext = DatabaseContext(cursor, verbose, attributes_source_table)
 
     # We disable the progress bar when showing verbose output (using '' as our bar_template)
     # or # the bar will get lost in the # output

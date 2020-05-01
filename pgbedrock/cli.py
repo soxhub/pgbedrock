@@ -28,8 +28,10 @@ def entrypoint():
 @click.option('--live/--check', default=False, help='whether to actually make changes ("live") or only show what would be changed ("check") (default: --check)')
 @click.option('--verbose/--no-verbose', default=False, help='whether to show debug-level logging messages while running (default: --no-verbose)')
 @click.option('--alternate-attributes-table/--no-alternate-attributes-table', default=False, help='whether to use pg_roles instead of pg_authid (default: --no-alternate-attributes-table)')
+@click.option('--skip-passwords/--no-skip-passwords', default=False, help='whether to update passwords or not (default --no-skip-passwords)')
+
 def configure(spec, host, port, user, password, dbname, prompt, attributes, memberships, ownerships,
-              privileges, live, verbose, alternate_attributes_table):
+              privileges, live, verbose, alternate_attributes_table, skip_passwords):
     """
     Configure the role attributes, memberships, object ownerships, and/or privileges of a
     database cluster to match a desired spec.
@@ -46,7 +48,7 @@ def configure(spec, host, port, user, password, dbname, prompt, attributes, memb
     attributes_source_table = 'pg_roles' if alternate_attributes_table else 'pg_authid'
 
     core_configure.configure(spec, host, port, user, password, dbname, prompt, attributes,
-                             memberships, ownerships, privileges, live, verbose, attributes_source_table)
+                             memberships, ownerships, privileges, live, verbose, attributes_source_table, skip_passwords)
 
 
 @entrypoint.command(short_help='Generate a YAML spec for a database')

@@ -62,11 +62,12 @@ def run_password_sql(cursor, all_password_sql_to_run):
     try:
         cursor.execute(query)
     except Exception as e:
+        logger.error('Password SQL Failure')
         common.fail(msg=common.FAILED_QUERY_MSG.format(query, e))
 
 
 def configure(spec_path, host, port, user, password, dbname, prompt, attributes, memberships,
-              ownerships, privileges, live, verbose, attributes_source_table):
+              ownerships, privileges, live, verbose, attributes_source_table, skip_passwords):
     """
     Configure the role attributes, memberships, object ownerships, and/or privileges of a
     database cluster to match a desired spec.
@@ -108,6 +109,8 @@ def configure(spec_path, host, port, user, password, dbname, prompt, attributes,
             messages during execution
 
         attributes_source_table - str; the table to read use attributes from (pg_authid or pg_roles)
+
+        skip_passwords - bool; whether to skip setting passwords
     """
     if verbose:
         root_logger = logging.getLogger('')
@@ -124,11 +127,19 @@ def configure(spec_path, host, port, user, password, dbname, prompt, attributes,
     sql_to_run = []
     password_changed = False  # Initialize this in case the attributes module isn't run
 
+    ignore_roles = []
+    for rolename, spec_config in spec.items():
+        spec_config = spec_config or {}
+        if spec_config.get('ignore', False):
+            ignore_roles.append(rolename)
+    for rolename in ignore_roles:
+        del spec[rolename]
+
     if attributes:
         sql_to_run.append(create_divider('attributes'))
         # Password changes happen within the attributes.py module itself so we don't leak
         # passwords; as a result we need to see if password changes occurred
-        module_sql, all_password_sql_to_run = analyze_attributes(spec, cursor, verbose, attributes_source_table)
+        module_sql, all_password_sql_to_run = analyze_attributes(spec, cursor, verbose, attributes_source_table, skip_passwords)
         run_module_sql(module_sql, cursor, verbose)
         if all_password_sql_to_run:
             password_changed = True
@@ -138,19 +149,19 @@ def configure(spec_path, host, port, user, password, dbname, prompt, attributes,
 
     if memberships:
         sql_to_run.append(create_divider('memberships'))
-        module_sql = analyze_memberships(spec, cursor, verbose)
+        module_sql = analyze_memberships(spec, cursor, verbose, attributes_source_table)
         run_module_sql(module_sql, cursor, verbose)
         sql_to_run.extend(module_sql)
 
     if ownerships:
         sql_to_run.append(create_divider('ownerships'))
-        module_sql = analyze_ownerships(spec, cursor, verbose)
+        module_sql = analyze_ownerships(spec, cursor, verbose, attributes_source_table)
         run_module_sql(module_sql, cursor, verbose)
         sql_to_run.extend(module_sql)
 
     if privileges:
         sql_to_run.append(create_divider('privileges'))
-        module_sql = analyze_privileges(spec, cursor, verbose)
+        module_sql = analyze_privileges(spec, cursor, verbose, attributes_source_table)
         run_module_sql(module_sql, cursor, verbose)
         sql_to_run.extend(module_sql)
 
